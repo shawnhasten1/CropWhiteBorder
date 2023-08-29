@@ -89,7 +89,7 @@ def crop_whitespace(image_path, output_path):
     print((max_x, max_y))
     
     # Crop the image to the bounding box
-    cropped_img = img.crop((min_x-1,           min_y-1,           max_x+1,           max_y+1))
+    cropped_img = img.crop((min_x-1, min_y-1, max_x+1, max_y+1))
     
     # Save the cropped image
     cropped_img.save(output_path)
@@ -110,7 +110,7 @@ def lessThanFunc(value, avg_color):
     return value <= avg_color
 
 if __name__ == "__main__":
-    input_image_path = "image-8.jpg"  # Replace with your input image file path
-    output_image_path = f"{input_image_path.split('.')[0]}-cropped.jpg"  # Replace with your desired output image file path
+    input_image_path = input("filename with extension: ")  # Replace with your input image file path
+    output_image_path = f"{input_image_path.split('.')[0]}-cropped.{input_image_path.split('.')[1]}"  # Replace with your desired output image file path
     
     crop_whitespace(input_image_path, output_image_path)
