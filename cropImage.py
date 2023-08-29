@@ -1,3 +1,4 @@
+import os
 from PIL import Image
 
 def crop_whitespace(image_path, output_path):
@@ -31,7 +32,6 @@ def crop_whitespace(image_path, output_path):
         for x in range(width):
             if lessThanFunc(gray_img.getpixel((x, y)), avg_color):
                 if not checkSurroundingPixels(gray_img, x, y, avg_color):
-                    print(gray_img.getpixel((x, y)))
                     bound_box.append((x,y))
                     found_first = True
                     break
@@ -44,7 +44,6 @@ def crop_whitespace(image_path, output_path):
         for x in range(width-1, -1, -1):
             if lessThanFunc(gray_img.getpixel((x, y)), avg_color):
                 if not checkSurroundingPixels(gray_img, x, y, avg_color):
-                    print(gray_img.getpixel((x, y)))
                     bound_box.append((x,y))
                     found_first = True
                     break
@@ -57,7 +56,6 @@ def crop_whitespace(image_path, output_path):
         for y in range(height-1, -1, -1):
             if lessThanFunc(gray_img.getpixel((x, y)), avg_color):
                 if not checkSurroundingPixels(gray_img, x, y, avg_color):
-                    print(gray_img.getpixel((x, y)))
                     bound_box.append((x,y))
                     found_first = True
                     break
@@ -69,10 +67,10 @@ def crop_whitespace(image_path, output_path):
     for x in range(width-1, -1, -1):
         for y in range(height-1, -1, -1):
             if lessThanFunc(gray_img.getpixel((x, y)), avg_color):
-                print(gray_img.getpixel((x, y)))
-                bound_box.append((x,y))
-                found_first = True
-                break
+                if not checkSurroundingPixels(gray_img, x, y, avg_color):
+                    bound_box.append((x,y))
+                    found_first = True
+                    break
         if found_first:
             break
     
@@ -84,12 +82,9 @@ def crop_whitespace(image_path, output_path):
     max_x = max(x for x, y in bound_box)
     min_y = min(y for x, y in bound_box)
     max_y = max(y for x, y in bound_box)
-
-    print((min_x, min_y))
-    print((max_x, max_y))
     
     # Crop the image to the bounding box
-    cropped_img = img.crop((min_x-1, min_y-1, max_x+1, max_y+1))
+    cropped_img = img.crop((min_x-3,           min_y-3,           max_x+4,           max_y+4))
     
     # Save the cropped image
     cropped_img.save(output_path)
@@ -100,17 +95,37 @@ def crop_whitespace(image_path, output_path):
 def checkSurroundingPixels(image, x, y, avg_color):
     width, height = image.size
     if x == 0 or x == width-1 or y == 0 or y == height-1:
-        print("Edge case")
+        # Edge case
         return False
     if image.getpixel((x-3, y-3)) > avg_color or image.getpixel((x, y-3)) > avg_color or image.getpixel((x+3, y-3)) > avg_color or image.getpixel((x-3, y)) > avg_color or image.getpixel((x+3, y)) > avg_color or image.getpixel((x-3, y+3)) > avg_color or image.getpixel((x, y+3)) > avg_color or image.getpixel((x+3, y+3)) > avg_color:
+        # Surrounding pixels are white
         return True
+    # Surrounding pixels are not white
     return False
 
 def lessThanFunc(value, avg_color):
     return value <= avg_color
 
-if __name__ == "__main__":
-    input_image_path = input("filename with extension: ")  # Replace with your input image file path
-    output_image_path = f"{input_image_path.split('.')[0]}-cropped.{input_image_path.split('.')[1]}"  # Replace with your desired output image file path
+def get_image_files(directory_path):
+    image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp']
+    image_files = {}
+
+    for root, dirs, files in os.walk(directory_path):
+        for file in files:
+            if any(file.lower().endswith(ext) for ext in image_extensions):
+                image_files[str(os.path.join(root, file).replace('\\', '/'))] = file
     
-    crop_whitespace(input_image_path, output_image_path)
+    return image_files
+
+if __name__ == "__main__":
+    # Get all images in the current directory
+    print(get_image_files('./images'))
+
+    #input_image_path = input("Enter filepath to image: ")  # Replace with your input image file path
+    images = get_image_files('./images')
+    for input_image_path in images:
+        print(input_image_path)
+        output_image_path = f"output/{str(images[input_image_path]).split('.')[0]}-cropped.jpg"
+        print(output_image_path)
+    
+        crop_whitespace(input_image_path, output_image_path)
